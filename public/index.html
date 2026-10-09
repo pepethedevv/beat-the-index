@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Beat The Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: report card on top (your number vs the index), then the board with period tabs. Left aligned, one column. */
+:root {
+  --bg: #e9edf1;
+  --panel: #ffffff;
+  --fg: #142230;
+  --muted: #5b6b7a;
+  --line: #d6dde4;
+  --brass: #a87a22;
+  --brass-soft: #f3e6c8;
+  --up: #1d7f55;
+  --down: #b9402f;
+  --spy: #6a7c8e;
+  --navy: #182433;
+  --navy-fg: #e4eaf0;
+  --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1720; --panel: #17222e; --fg: #e4eaf0; --muted: #93a3b3; --line: #2a3a4a;
+    --brass: #d9a84c; --brass-soft: #3a2f1a; --up: #3fbf86; --down: #e5705f; --spy: #8fa1b3;
+    --navy: #0b121a; --navy-fg: #e4eaf0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1720; --panel: #17222e; --fg: #e4eaf0; --muted: #93a3b3; --line: #2a3a4a;
+  --brass: #d9a84c; --brass-soft: #3a2f1a; --up: #3fbf86; --down: #e5705f; --spy: #8fa1b3;
+  --navy: #0b121a; --navy-fg: #e4eaf0; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 48px; display: flex; flex-direction: column; gap: 22px; }
+
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: .4px; }
+.brand svg { width: 30px; height: 30px; }
+.ticker { font-family: var(--mono); font-size: 13px; color: var(--brass); border: 1px solid var(--brass); border-radius: 4px; padding: 1px 7px; }
+.demo { margin-left: auto; font-size: 12px; font-weight: 600; background: var(--brass-soft); color: var(--brass); padding: 4px 10px; border-radius: 999px; }
+
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(32px, 6vw, 48px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.lede { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+
+/* report card */
+.card { background: var(--navy); color: var(--navy-fg); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.check { display: flex; flex-wrap: wrap; gap: 8px; }
+.check label { width: 100%; font-size: 13px; opacity: .8; }
+.check input { flex: 1 1 260px; min-width: 0; font-family: var(--mono); font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #3a4b5e; background: #0f1822; color: var(--navy-fg); }
+.btn { font: 600 14px var(--body); padding: 10px 16px; border-radius: 8px; border: 0; cursor: pointer; background: var(--brass); color: #1a1408; text-decoration: none; display: inline-flex; align-items: center; }
+.btn.ghost { background: transparent; color: inherit; border: 1px solid currentColor; }
+.btn:focus-visible, .tab:focus-visible, input:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.err { color: #f0a090; font-size: 13px; margin: 0; }
+.result { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border-top: 1px solid #2c3d50; padding-top: 14px; }
+.result div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.result small { font-size: 12px; opacity: .75; }
+.result b { font-family: var(--mono); font-weight: 500; font-size: 24px; font-variant-numeric: tabular-nums; }
+.verdict { font-family: var(--display); font-weight: 800; font-size: 28px; margin: 0; }
+.cardfoot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cardfoot span { font-size: 12px; opacity: .7; margin-left: auto; }
+.win { color: #5fd3a0; } .lose { color: #f0897a; }
+
+/* board */
+.boardhead { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; justify-content: space-between; }
+.boardhead h2 { font-family: var(--display); font-weight: 800; font-size: 30px; margin: 0; }
+.tabs { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; }
+.tab { font: 600 13px var(--body); border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-radius: 6px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+.spyline { font-size: 13px; color: var(--muted); margin: 0; }
+.spyline b { font-family: var(--mono); font-weight: 500; color: var(--fg); }
+
+.tablebox { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: 10px 12px; text-align: right; white-space: nowrap; }
+th { font-size: 12px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); }
+td { border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 14px; }
+tr:last-child td { border-bottom: 0; }
+th:nth-child(2), td:nth-child(2) { text-align: left; }
+td.rank { color: var(--muted); width: 40px; }
+tr.top td.rank { color: var(--brass); font-weight: 600; }
+.who { display: flex; align-items: center; gap: 10px; font-family: var(--body); }
+.av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--body); color: #fff; flex: none; }
+.av.anon { background: var(--line); color: var(--muted); }
+.handle { font-weight: 600; }
+.addr { font-family: var(--mono); color: var(--muted); font-size: 13px; }
+.pos { color: var(--up); } .neg { color: var(--down); }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 13px; }
+.pill.pos { background: color-mix(in srgb, var(--up) 14%, transparent); }
+.pill.neg { background: color-mix(in srgb, var(--down) 14%, transparent); }
+.divider td { padding: 6px 12px; font: 600 12px var(--body); color: var(--muted); text-align: left; background: var(--bg); }
+
+.join { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.join p { margin: 0; flex: 1 1 280px; font-size: 14px; color: var(--muted); }
+.join .btn.ghost { color: var(--fg); }
+.joinnote { flex-basis: 100%; font-size: 13px; color: var(--brass); }
+
+.rules { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; max-width: 70ch; }
+
+@media (max-width: 560px) {
+  .result { grid-template-columns: 1fr 1fr; }
+  .result div:last-child { grid-column: 1 / -1; }
+  th:nth-child(5), td:nth-child(5), th:nth-child(6), td:nth-child(6) { display: none; }
+  .demo { margin-left: 0; }
+}
+[hidden]{display:none!important}
+.av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.empty td{text-align:left;font-family:var(--body);color:var(--muted);padding:18px 12px;white-space:normal}
+.busy{opacity:.55}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="14" r="6" fill="var(--brass)"/><path d="M60 18 C34 18 30 44 30 62 C30 78 22 84 16 90 L104 90 C98 84 90 78 90 62 C90 44 86 18 60 18 Z" fill="var(--brass)"/><rect x="14" y="88" width="92" height="8" rx="4" fill="var(--brass)"/><circle cx="60" cy="103" r="7" fill="var(--brass)"/></svg>
+      Beat The Index <span class="ticker">$BEAT</span>
+    </div>
+  </header>
+
+  <div>
+    <h1>Did your trades beat the S&amp;P 500?</h1>
+    <p class="lede">Paste a Solana wallet. We compare the return on its trades with what the same money would have made sitting in SPYx over the same time.</p>
+  </div>
+
+  <section class="card" aria-label="Wallet report card">
+    <form class="check" id="form" novalidate>
+      <label for="addr">Solana wallet address</label>
+      <input id="addr" autocomplete="off" spellcheck="false" placeholder="Paste a wallet address">
+      <button class="btn" type="submit">Check wallet</button>
+    </form>
+    <p class="err" id="err" hidden></p>
+    <div id="resultbox" hidden>
+    <p class="verdict" id="cv"></p>
+    <div class="result">
+      <div><small>Your trades, 30 days</small><b id="cr"></b></div>
+      <div><small>SPYx, same period</small><b id="cs"></b></div>
+      <div><small>Difference</small><b id="cd"></b></div>
+    </div>
+    <div class="cardfoot">
+      <a class="btn" id="share" href="https://x.com/intent/tweet" target="_blank" rel="noopener">Share on X</a>
+      <span id="crank"></span>
+    </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div class="boardhead">
+      <h2>Leaderboard</h2>
+      <div class="tabs" role="tablist" aria-label="Period">
+        <button class="tab" role="tab" id="t-day" aria-selected="false" data-p="day">Day</button>
+        <button class="tab" role="tab" id="t-week" aria-selected="true" data-p="week">Week</button>
+        <button class="tab" role="tab" id="t-month" aria-selected="false" data-p="month">Month</button>
+      </div>
+    </div>
+    <p class="spyline">SPYx this <span id="pname">week</span>: <b id="pspy">…</b>. Ranked by how far each trader beat it.</p>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>#</th><th>Trader</th><th>Return</th><th>vs SPYx</th><th>Trades</th><th>Volume</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <div class="join">
+      <p>Join the board by signing a message with your wallet. It costs nothing and moves no funds. Linking X is optional and shows your handle instead of your address.</p>
+      <button class="btn" type="button" id="joinbtn">Join with wallet</button>
+      <button class="btn ghost" type="button" id="xbtn" hidden>Link X</button>
+      <span class="joinnote" id="joinnote" hidden></span>
+    </div>
+
+    <ul class="rules">
+      <li>Only wallets that joined appear. Nobody is added without signing.</li>
+      <li>A wallet needs at least 30 trades and $1,000 of volume in the period to rank.</li>
+      <li>Return counts closed trades plus open positions at current price. SPYx is measured over the same window.</li>
+      <li>Past results say nothing about future trades. This is a scoreboard, not advice.</li>
+    </ul>
+  </section>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "beat-the-index",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node test/pnl.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.45.4",
+    "bs58": "6.0.0",
+    "tweetnacl": "1.0.3"
+  }
+}
