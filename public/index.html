@@ -91,6 +91,12 @@ body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--bo
 .cta span { flex: 1 1 260px; font-size: 14px; opacity: .8; }
 .cta em { font-style: normal; font-weight: 600; background: var(--brass); color: #1a1408; padding: 9px 16px; border-radius: 8px; font-size: 14px; }
 
+.ca { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.ca b { font-size: 13px; color: var(--muted); font-weight: 600; }
+.ca code { font-family: var(--mono); font-size: 14px; flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; user-select: all; }
+.ca button, .ca a { font: 600 13px var(--body); padding: 7px 12px; border-radius: 7px; cursor: pointer; text-decoration: none; border: 1px solid var(--line); background: transparent; color: var(--fg); }
+.ca .buy { background: var(--brass); border-color: var(--brass); color: #1a1408; }
+.ca button:focus-visible, .ca a:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
 .note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--brass); padding: 6px 12px; max-width: 70ch; margin: 0; }
 
 @media (max-width: 720px) {
@@ -117,6 +123,14 @@ body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--bo
     <span class="sim" id="sim">Simulated prices until launch</span>
     <nav class="nav"><a href="/" aria-current="page">Home</a><a href="/leaderboard">Leaderboard</a></nav>
   </header>
+
+  <div class="ca" id="ca" hidden>
+    <b>CA</b>
+    <code id="caval"></code>
+    <button type="button" id="cacopy">Copy</button>
+    <a class="buy" id="cabuy" href="https://pump.fun" target="_blank" rel="noopener">Buy on pump.fun</a>
+    <a id="cachart" href="https://dexscreener.com" target="_blank" rel="noopener">Chart</a>
+  </div>
 
   <section class="hero" id="hero">
     <div class="bellside">

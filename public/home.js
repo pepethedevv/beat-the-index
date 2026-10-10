@@ -50,7 +50,7 @@
       s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"' + (g === 0 ? "" : ' stroke-dasharray="3 4"') + "/>";
       s += '<text x="' + (L - 6) + '" y="' + (y(g) + 3) + '" text-anchor="end">' + (g > 0 ? "+" : "") + g + "%</text>";
     }
-    s += '<text x="' + L + '" y="' + (H - 4) + '">24h ago</text><text x="' + (W - R) + '" y="' + (H - 4) + '" text-anchor="end">now</text>';
+    s += '<text x="' + L + '" y="' + (H - 4) + '">' + (N < 90 ? "launch" : "24h ago") + '</text><text x="' + (W - R) + '" y="' + (H - 4) + '" text-anchor="end">now</text>';
     s += line(spy, "var(--spy)", 2) + line(bell, "var(--brass)", 2.5);
     s += '<circle cx="' + x(N - 1) + '" cy="' + y(bell[N - 1]) + '" r="4" fill="var(--brass)"/>';
     $("chart").innerHTML = s;
@@ -88,13 +88,38 @@
     }
   }
 
+  // After launch, before enough trading history: no fake numbers
+  function waiting() {
+    $("verdict").textContent = "The race starts soon";
+    $("verdict").className = "verdict";
+    ["lb", "ls"].forEach(function (id) { $(id).textContent = "--"; });
+    ["d-spy", "d-own", "d-tot"].forEach(function (id) { $(id).textContent = "--"; $(id).className = ""; });
+    $("chart").innerHTML = '<text x="320" y="95" text-anchor="middle" style="font-size:13px">The live chart appears after the first hour of trading.</text>';
+  }
+
+  // ---------- contract address ----------
+  function showCA(mint) {
+    if (!mint || !$("ca").hidden) return;
+    $("caval").textContent = mint;
+    $("cabuy").href = "https://pump.fun/coin/" + mint;
+    $("cachart").href = "https://dexscreener.com/solana/" + mint;
+    $("ca").hidden = false;
+  }
+  $("cacopy").addEventListener("click", function () {
+    var btn = this, text = $("caval").textContent;
+    function done() { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy"; }, 1500); }
+    function fallback() { var r = document.createRange(); r.selectNodeContents($("caval")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selected, press Ctrl+C"; }
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  });
+
   // ---------- live prices ----------
   function load() {
     fetch("/api/race").then(function (r) { return r.json(); }).then(function (d) {
-      if (!d.live) { if (!sim) simulate(); return; }
+      showCA(d.mint);
+      if (!d.mint) { if (!sim) simulate(); return; }   // before launch: sample chart with label
       if (sim) { clearInterval(sim); sim = null; }
       $("sim").hidden = true;
-      draw(d.beat, d.spy);
+      if (d.live) draw(d.beat, d.spy); else waiting();
       if (d.pot) {
         $("pot").textContent = d.pot.spyx.toFixed(3) + " SPYx";
         $("potlink").href = "https://solscan.io/account/" + d.pot.wallet;
@@ -105,5 +130,5 @@
     }).catch(function () { if (!sim) simulate(); });
   }
   load();
-  setInterval(function () { if (!sim) load(); }, 60000);
+  setInterval(load, 60000);
 })();

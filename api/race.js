@@ -47,16 +47,18 @@ export default async function handler(req, res) {
     const since = Math.floor(Date.now() / 1000) - 86400;
     const [beat, spy, pot] = await Promise.all([candles(mint), candles(SPYX_MINT), potBalance(process.env.CREATOR_WALLET)]);
     const pts = beat.filter(([t]) => t >= since);
-    if (pts.length < 2) return send(res, 200, { live: false, reason: "Not enough trading history yet" }, 60);
+    const potOut = pot == null ? null : { spyx: pot, wallet: process.env.CREATOR_WALLET };
+    if (pts.length < 2) return send(res, 200, { live: false, mint, pot: potOut, reason: "Not enough trading history yet" }, 60);
     const b0 = pts[0][1], s0 = priceAt(spy, pts[0][0]);
     return send(res, 200, {
       live: true,
+      mint,
       beat: pts.map(([, p]) => (p / b0 - 1) * 100),
       spy: pts.map(([t]) => (priceAt(spy, t) / s0 - 1) * 100),
-      pot: pot == null ? null : { spyx: pot, wallet: process.env.CREATOR_WALLET },
+      pot: potOut,
     }, 60);
   } catch (e) {
     console.error(e);
-    return send(res, 200, { live: false, reason: "Price data is unavailable right now" }, 30);
+    return send(res, 200, { live: false, mint, reason: "Price data is unavailable right now" }, 30);
   }
 }
