@@ -58,7 +58,7 @@
           : (d.joined ? "Rank #" : "Would rank #") + d.rank + " this month";
         var text = vs >= 0 ? "My trades beat the S&P 500 by " + vs.toFixed(1) + " points this month. Did yours? $BEAT"
           : "The S&P 500 beat my trades by " + (-vs).toFixed(1) + " points this month. Should have bought the index. $BEAT";
-        $("share").href = "https://x.com/intent/tweet?text=" + encodeURIComponent(text + " " + location.origin);
+        $("share").href = "https://x.com/intent/tweet?text=" + encodeURIComponent(text + " " + location.origin + "/leaderboard");
       })
       .catch(function (e) { err.textContent = e.message || "Something went wrong. Try again."; err.hidden = false; })
       .then(function () { btn.disabled = false; btn.textContent = "Check wallet"; });

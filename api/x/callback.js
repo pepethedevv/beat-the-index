@@ -3,7 +3,7 @@ import { env } from "../../lib/config.js";
 
 function back(res, query) {
   res.statusCode = 302;
-  res.setHeader("location", `/?${query}`);
+  res.setHeader("location", `/leaderboard?${query}`);
   res.end();
 }
 

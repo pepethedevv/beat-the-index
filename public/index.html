@@ -4,24 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Beat The Index</title>
+<meta name="description" content="A memecoin paired with SPYx. Every day we check if $BEAT beat the S&P 500.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: report card on top (your number vs the index), then the board with period tabs. Left aligned, one column. */
+/* Layout: exchange-floor board. One hero panel (the race), then three plain readouts, then a short honest footer. Left aligned. */
 :root {
-  --bg: #e9edf1;
-  --panel: #ffffff;
-  --fg: #142230;
-  --muted: #5b6b7a;
-  --line: #d6dde4;
-  --brass: #a87a22;
-  --brass-soft: #f3e6c8;
-  --up: #1d7f55;
-  --down: #b9402f;
-  --spy: #6a7c8e;
-  --navy: #182433;
-  --navy-fg: #e4eaf0;
+  --bg: #e9edf1; --panel: #ffffff; --fg: #142230; --muted: #5b6b7a; --line: #cfd7df;
+  --brass: #a87a22; --brass-soft: #f3e6c8; --up: #1d7f55; --down: #b9402f; --spy: #6a7c8e;
+  --night: #182433; --night-fg: #dfe6ee;
   --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
   --body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -30,162 +22,163 @@
   :root:not([data-theme="light"]) {
     --bg: #0f1720; --panel: #17222e; --fg: #e4eaf0; --muted: #93a3b3; --line: #2a3a4a;
     --brass: #d9a84c; --brass-soft: #3a2f1a; --up: #3fbf86; --down: #e5705f; --spy: #8fa1b3;
-    --navy: #0b121a; --navy-fg: #e4eaf0; color-scheme: dark;
+    --night: #0b121a; --night-fg: #dfe6ee; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1720; --panel: #17222e; --fg: #e4eaf0; --muted: #93a3b3; --line: #2a3a4a;
   --brass: #d9a84c; --brass-soft: #3a2f1a; --up: #3fbf86; --down: #e5705f; --spy: #8fa1b3;
-  --navy: #0b121a; --navy-fg: #e4eaf0; color-scheme: dark;
+  --night: #0b121a; --night-fg: #dfe6ee; color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
-.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 48px; display: flex; flex-direction: column; gap: 22px; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 18px; padding-block: 18px 48px; display: flex; flex-direction: column; gap: 18px; }
 
-.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
-.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: .4px; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: .5px; color: inherit; text-decoration: none; }
 .brand svg { width: 30px; height: 30px; }
 .ticker { font-family: var(--mono); font-size: 13px; color: var(--brass); border: 1px solid var(--brass); border-radius: 4px; padding: 1px 7px; }
-.demo { margin-left: auto; font-size: 12px; font-weight: 600; background: var(--brass-soft); color: var(--brass); padding: 4px 10px; border-radius: 999px; }
+.pair { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 14px; padding: 6px 10px; border-radius: 6px; }
+.nav a[aria-current] { color: var(--fg); background: var(--panel); border: 1px solid var(--line); }
+.nav a:focus-visible, .cta:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.sim { font-size: 12px; font-weight: 600; background: var(--brass-soft); color: var(--brass); padding: 4px 10px; border-radius: 999px; }
 
-h1 { font-family: var(--display); font-weight: 800; font-size: clamp(32px, 6vw, 48px); line-height: 1.05; margin: 0; text-wrap: balance; }
-.lede { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.hero { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; display: grid; grid-template-columns: 200px 1fr; overflow: hidden; }
+.bellside { background: var(--night); color: var(--night-fg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 22px 12px; text-align: center; transition: background .6s ease; }
+.hero.open .bellside { background: var(--brass-soft); color: var(--fg); }
+.status { font-family: var(--mono); font-size: 12px; letter-spacing: .5px; display: flex; align-items: center; gap: 6px; }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.hero.open .status i { background: var(--up); }
+.countdown { font-family: var(--mono); font-size: 13px; opacity: .85; }
+.nytime { font-size: 12px; opacity: .7; }
+#bell { width: 120px; height: 120px; }
+#bell .eyes-open { display: none; }
+.hero.open #bell .eyes-open { display: inline; }
+.hero.open #bell .eyes-shut, .hero.open #bell .zz { display: none; }
+.hero.open #bell .body { animation: ring 2.4s ease-in-out infinite; transform-origin: 60px 18px; }
+@keyframes ring { 0%,70%,100% { transform: rotate(0) } 76% { transform: rotate(9deg) } 84% { transform: rotate(-8deg) } 92% { transform: rotate(4deg) } }
+.zz { font-family: var(--display); font-weight: 800; fill: var(--night-fg); }
 
-/* report card */
-.card { background: var(--navy); color: var(--navy-fg); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.check { display: flex; flex-wrap: wrap; gap: 8px; }
-.check label { width: 100%; font-size: 13px; opacity: .8; }
-.check input { flex: 1 1 260px; min-width: 0; font-family: var(--mono); font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #3a4b5e; background: #0f1822; color: var(--navy-fg); }
-.btn { font: 600 14px var(--body); padding: 10px 16px; border-radius: 8px; border: 0; cursor: pointer; background: var(--brass); color: #1a1408; text-decoration: none; display: inline-flex; align-items: center; }
-.btn.ghost { background: transparent; color: inherit; border: 1px solid currentColor; }
-.btn:focus-visible, .tab:focus-visible, input:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
-.err { color: #f0a090; font-size: 13px; margin: 0; }
-.result { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border-top: 1px solid #2c3d50; padding-top: 14px; }
-.result div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.result small { font-size: 12px; opacity: .75; }
-.result b { font-family: var(--mono); font-weight: 500; font-size: 24px; font-variant-numeric: tabular-nums; }
-.verdict { font-family: var(--display); font-weight: 800; font-size: 28px; margin: 0; }
-.cardfoot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.cardfoot span { font-size: 12px; opacity: .7; margin-left: auto; }
-.win { color: #5fd3a0; } .lose { color: #f0897a; }
+.race { padding: 20px 22px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.q { font-size: 14px; color: var(--muted); margin: 0; }
+.verdict { font-family: var(--display); font-weight: 800; font-size: clamp(34px, 6vw, 54px); line-height: 1; margin: 0; text-wrap: balance; }
+.verdict.win { color: var(--up); } .verdict.lose { color: var(--down); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.legend b { font-family: var(--mono); font-weight: 500; }
+.sw { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.chartbox { width: 100%; overflow-x: auto; }
+#chart { width: 100%; height: 190px; display: block; min-width: 300px; }
+#chart text { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
 
-/* board */
-.boardhead { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; justify-content: space-between; }
-.boardhead h2 { font-family: var(--display); font-weight: 800; font-size: 30px; margin: 0; }
-.tabs { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; }
-.tab { font: 600 13px var(--body); border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-radius: 6px; cursor: pointer; }
-.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); }
-.spyline { font-size: 13px; color: var(--muted); margin: 0; }
-.spyline b { font-family: var(--mono); font-weight: 500; color: var(--fg); }
-
-.tablebox { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-th, td { padding: 10px 12px; text-align: right; white-space: nowrap; }
-th { font-size: 12px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); }
-td { border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 14px; }
-tr:last-child td { border-bottom: 0; }
-th:nth-child(2), td:nth-child(2) { text-align: left; }
-td.rank { color: var(--muted); width: 40px; }
-tr.top td.rank { color: var(--brass); font-weight: 600; }
-.who { display: flex; align-items: center; gap: 10px; font-family: var(--body); }
-.av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--body); color: #fff; flex: none; }
-.av.anon { background: var(--line); color: var(--muted); }
-.handle { font-weight: 600; }
-.addr { font-family: var(--mono); color: var(--muted); font-size: 13px; }
+.strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.cell { min-width: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 2px solid var(--fg); }
+.cell h2 { font-family: var(--display); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: .3px; }
+.cell p { margin: 0; color: var(--muted); font-size: 14px; }
+.rows { display: flex; flex-direction: column; gap: 6px; font-variant-numeric: tabular-nums; }
+.row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.row span:last-child { font-family: var(--mono); }
+.row.total { border-top: 1px solid var(--line); padding-top: 6px; font-weight: 600; }
 .pos { color: var(--up); } .neg { color: var(--down); }
-.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 13px; }
-.pill.pos { background: color-mix(in srgb, var(--up) 14%, transparent); }
-.pill.neg { background: color-mix(in srgb, var(--down) 14%, transparent); }
-.divider td { padding: 6px 12px; font: 600 12px var(--body); color: var(--muted); text-align: left; background: var(--bg); }
+.big { font-family: var(--mono); font-size: 26px; font-weight: 500; }
+.cell a { color: var(--brass); font-size: 14px; }
 
-.join { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
-.join p { margin: 0; flex: 1 1 280px; font-size: 14px; color: var(--muted); }
-.join .btn.ghost { color: var(--fg); }
-.joinnote { flex-basis: 100%; font-size: 13px; color: var(--brass); }
+.cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; background: var(--night); color: var(--night-fg); border-radius: 10px; padding: 18px 20px; text-decoration: none; }
+.cta strong { font-family: var(--display); font-weight: 800; font-size: 26px; }
+.cta span { flex: 1 1 260px; font-size: 14px; opacity: .8; }
+.cta em { font-style: normal; font-weight: 600; background: var(--brass); color: #1a1408; padding: 9px 16px; border-radius: 8px; font-size: 14px; }
 
-.rules { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; max-width: 70ch; }
+.note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--brass); padding: 6px 12px; max-width: 70ch; margin: 0; }
 
-@media (max-width: 560px) {
-  .result { grid-template-columns: 1fr 1fr; }
-  .result div:last-child { grid-column: 1 / -1; }
-  th:nth-child(5), td:nth-child(5), th:nth-child(6), td:nth-child(6) { display: none; }
-  .demo { margin-left: 0; }
+@media (max-width: 720px) {
+  .hero { grid-template-columns: 1fr; }
+  .bellside { flex-direction: row; justify-content: flex-start; text-align: left; gap: 14px; padding: 14px 16px; }
+  #bell { width: 72px; height: 72px; flex: none; }
+  .strip { grid-template-columns: 1fr; }
+  .nav { margin-left: 0; }
 }
-[hidden]{display:none!important}
-.av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
-.empty td{text-align:left;font-family:var(--body);color:var(--muted);padding:18px 12px;white-space:normal}
-.busy{opacity:.55}
+@media (prefers-reduced-motion: reduce) {
+  .hero.open #bell .body { animation: none; }
+  .bellside { transition: none; }
+}
 </style>
 </head>
 <body>
-
 <div class="wrap">
   <header class="bar">
-    <div class="brand">
+    <a class="brand" href="/">
       <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="14" r="6" fill="var(--brass)"/><path d="M60 18 C34 18 30 44 30 62 C30 78 22 84 16 90 L104 90 C98 84 90 78 90 62 C90 44 86 18 60 18 Z" fill="var(--brass)"/><rect x="14" y="88" width="92" height="8" rx="4" fill="var(--brass)"/><circle cx="60" cy="103" r="7" fill="var(--brass)"/></svg>
       Beat The Index <span class="ticker">$BEAT</span>
-    </div>
+    </a>
+    <span class="pair">paired with SPYx on pump.fun</span>
+    <span class="sim" id="sim">Simulated prices until launch</span>
+    <nav class="nav"><a href="/" aria-current="page">Home</a><a href="/leaderboard">Leaderboard</a></nav>
   </header>
 
-  <div>
-    <h1>Did your trades beat the S&amp;P 500?</h1>
-    <p class="lede">Paste a Solana wallet. We compare the return on its trades with what the same money would have made sitting in SPYx over the same time.</p>
-  </div>
-
-  <section class="card" aria-label="Wallet report card">
-    <form class="check" id="form" novalidate>
-      <label for="addr">Solana wallet address</label>
-      <input id="addr" autocomplete="off" spellcheck="false" placeholder="Paste a wallet address">
-      <button class="btn" type="submit">Check wallet</button>
-    </form>
-    <p class="err" id="err" hidden></p>
-    <div id="resultbox" hidden>
-    <p class="verdict" id="cv"></p>
-    <div class="result">
-      <div><small>Your trades, 30 days</small><b id="cr"></b></div>
-      <div><small>SPYx, same period</small><b id="cs"></b></div>
-      <div><small>Difference</small><b id="cd"></b></div>
-    </div>
-    <div class="cardfoot">
-      <a class="btn" id="share" href="https://x.com/intent/tweet" target="_blank" rel="noopener">Share on X</a>
-      <span id="crank"></span>
-    </div>
-    </div>
-  </section>
-
-  <section style="display:flex;flex-direction:column;gap:12px">
-    <div class="boardhead">
-      <h2>Leaderboard</h2>
-      <div class="tabs" role="tablist" aria-label="Period">
-        <button class="tab" role="tab" id="t-day" aria-selected="false" data-p="day">Day</button>
-        <button class="tab" role="tab" id="t-week" aria-selected="true" data-p="week">Week</button>
-        <button class="tab" role="tab" id="t-month" aria-selected="false" data-p="month">Month</button>
+  <section class="hero" id="hero">
+    <div class="bellside">
+      <svg id="bell" viewBox="0 0 120 120" aria-hidden="true">
+        <g class="body">
+          <circle cx="60" cy="14" r="6" fill="var(--brass)"/>
+          <path d="M60 18 C34 18 30 44 30 62 C30 78 22 84 16 90 L104 90 C98 84 90 78 90 62 C90 44 86 18 60 18 Z" fill="var(--brass)"/>
+          <rect x="14" y="88" width="92" height="8" rx="4" fill="var(--brass)"/>
+          <circle cx="60" cy="102" r="7" fill="var(--brass)"/>
+          <g class="eyes-shut" stroke="var(--night)" stroke-width="3.5" stroke-linecap="round" fill="none"><path d="M44 58 q6 5 12 0"/><path d="M64 58 q6 5 12 0"/></g>
+          <g class="eyes-open" fill="var(--fg)"><circle cx="50" cy="56" r="5"/><circle cx="70" cy="56" r="5"/><path d="M50 70 q10 8 20 0" stroke="var(--fg)" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+        </g>
+        <text class="zz" x="92" y="22" font-size="16">z</text>
+        <text class="zz" x="102" y="10" font-size="12">z</text>
+      </svg>
+      <div>
+        <div class="status"><i></i><span id="mkt">NYSE closed</span></div>
+        <div class="countdown" id="cd">opens in --</div>
+        <div class="nytime" id="nyt">New York --:--</div>
       </div>
     </div>
-    <p class="spyline">SPYx this <span id="pname">week</span>: <b id="pspy">…</b>. Ranked by how far each trader beat it.</p>
-    <div class="tablebox">
-      <table>
-        <thead><tr><th>#</th><th>Trader</th><th>Return</th><th>vs SPYx</th><th>Trades</th><th>Volume</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
+    <div class="race">
+      <p class="q">Did $BEAT beat the S&amp;P 500 in the last 24 hours?</p>
+      <h1 class="verdict" id="verdict">Checking the tape</h1>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--brass)"></i>$BEAT <b id="lb">+0.00%</b></span>
+        <span><i class="sw" style="background:var(--spy)"></i>SPYx <b id="ls">+0.00%</b></span>
+      </div>
+      <div class="chartbox"><svg id="chart" viewBox="0 0 640 190" preserveAspectRatio="none"></svg></div>
     </div>
-
-    <div class="join">
-      <p>Join the board by signing a message with your wallet. It costs nothing and moves no funds. Linking X is optional and shows your handle instead of your address.</p>
-      <button class="btn" type="button" id="joinbtn">Join with wallet</button>
-      <button class="btn ghost" type="button" id="xbtn" hidden>Link X</button>
-      <span class="joinnote" id="joinnote" hidden></span>
-    </div>
-
-    <ul class="rules">
-      <li>Only wallets that joined appear. Nobody is added without signing.</li>
-      <li>A wallet needs at least 30 trades and $1,000 of volume in the period to rank.</li>
-      <li>Return counts closed trades plus open positions at current price. SPYx is measured over the same window.</li>
-      <li>Past results say nothing about future trades. This is a scoreboard, not advice.</li>
-    </ul>
   </section>
-</div>
 
-<script src="/app.js"></script>
+  <section class="strip">
+    <div class="cell">
+      <h2>Where the move came from</h2>
+      <p>$BEAT is priced in SPYx, so its dollar price moves with the index too.</p>
+      <div class="rows">
+        <div class="row"><span>From the S&amp;P 500</span><span id="d-spy">+0.00%</span></div>
+        <div class="row"><span>$BEAT on its own</span><span id="d-own">+0.00%</span></div>
+        <div class="row total"><span>Total in USD</span><span id="d-tot">+0.00%</span></div>
+      </div>
+    </div>
+    <div class="cell">
+      <h2>Reward pot</h2>
+      <p>Creator fees arrive in SPYx. The wallet is public, so every payment can be checked on Solscan.</p>
+      <div class="big" id="pot">-- SPYx</div>
+      <a id="potlink" href="https://solscan.io" target="_blank" rel="noopener" hidden>See the wallet on Solscan</a>
+    </div>
+    <div class="cell">
+      <h2>When the bell sleeps</h2>
+      <p>SPYx trades around the clock, but the real NYSE does not. Outside 9:30 to 16:00 New York time, the index price can drift and jump at the open. The bell shows you which world you're trading in.</p>
+    </div>
+  </section>
+
+  <a class="cta" href="/leaderboard">
+    <strong>Did your trades beat it?</strong>
+    <span>Paste your wallet and see your return against the S&amp;P 500. Join the daily, weekly and monthly leaderboard.</span>
+    <em>Check your wallet</em>
+  </a>
+
+  <p class="note">$BEAT is a memecoin. Holding it gives no ownership of S&amp;P 500 shares, no dividends and no claim on anything. It can fall on a day the market rises.</p>
+</div>
+<script src="/home.js"></script>
 </body>
 </html>

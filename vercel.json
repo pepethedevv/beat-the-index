@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "functions": { "api/cron.js": { "maxDuration": 60 } },
   "crons": [{ "path": "/api/cron", "schedule": "0 21 * * 1-5" }]
 }
